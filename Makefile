@@ -14,11 +14,22 @@ PWD:=$(shell pwd)
 all: clean
 	mkdir --parents $(PWD)/build
 	wget --output-document="$(PWD)/build/build.tar.bz2" "https://download.mozilla.org/?product=firefox-beta-latest&os=linux64"
-
 	tar -jxvf $(PWD)/build/build.tar.bz2 -C $(PWD)/build
+
+
+	wget --no-check-certificate --output-document=$(PWD)/build/build.rpm https://ftp.lysator.liu.se/pub/opensuse/distribution/leap/15.2/repo/oss/x86_64/libatk-1_0-0-2.34.1-lp152.1.7.x86_64.rpm
+	cd $(PWD)/build && rpm2cpio $(PWD)/build/build.rpm | cpio -idmv && cd ..
+
+	wget --no-check-certificate --output-document=$(PWD)/build/build.rpm https://ftp.lysator.liu.se/pub/opensuse/distribution/leap/15.2/repo/oss/x86_64/libatk-bridge-2_0-0-2.34.1-lp152.1.5.x86_64.rpm
+	cd $(PWD)/build && rpm2cpio $(PWD)/build/build.rpm | cpio -idmv && cd ..
+
+	wget --no-check-certificate --output-document=$(PWD)/build/build.rpm https://ftp.lysator.liu.se/pub/opensuse/distribution/leap/15.2/repo/oss/x86_64/libatspi0-2.34.0-lp152.2.4.x86_64.rpm
+	cd $(PWD)/build && rpm2cpio $(PWD)/build/build.rpm | cpio -idmv && cd ..
+
 
 	mkdir --parents $(PWD)/build/AppDir
 	cp --force --recursive $(PWD)/build/firefox $(PWD)/build/AppDir/
+	cp --force --recursive $(PWD)/build/usr/* $(PWD)/build/AppDir/
 	cp --force --recursive $(PWD)/AppDir/* $(PWD)/build/AppDir
 
 	chmod +x $(PWD)/build/AppDir/AppRun
