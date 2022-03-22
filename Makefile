@@ -9,24 +9,26 @@
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-PWD:=$(shell pwd)
+PWD := $(shell pwd)
+
+DOCKER_COMPOSE:=docker-compose -f $(PWD)/docker-compose.yaml
+
+.EXPORT_ALL_VARIABLES:
+CID=$(shell basename $(PWD) | tr -cd '[:alnum:]' | tr A-Z a-z)
+UID=$(shell id -u)
+GID=$(shell id -g)
+
+.PHONY: all
+
 
 all: clean
-	mkdir --parents $(PWD)/build
-	wget --output-document="$(PWD)/build/build.tar.bz2" "https://download.mozilla.org/?product=firefox-beta-latest&os=linux64"
-
-	tar -jxvf $(PWD)/build/build.tar.bz2 -C $(PWD)/build
-
-	mkdir --parents $(PWD)/build/AppDir
-	cp --force --recursive $(PWD)/build/firefox $(PWD)/build/AppDir/
-	cp --force --recursive $(PWD)/AppDir/* $(PWD)/build/AppDir
-
-	chmod +x $(PWD)/build/AppDir/AppRun
-	chmod +x $(PWD)/build/AppDir/*.desktop
-
-	export ARCH=x86_64 && $(PWD)/bin/appimagetool.AppImage $(PWD)/build/AppDir $(PWD)/Firefox-Beta.AppImage
-	chmod +x $(PWD)/Firefox-Beta.AppImage
-
+	$(DOCKER_COMPOSE) stop
+	$(DOCKER_COMPOSE) up --build --no-start
+	$(DOCKER_COMPOSE) up -d  "appimage"
+	$(DOCKER_COMPOSE) run    "appimage" make all
+	$(DOCKER_COMPOSE) run    "appimage" chown -R $(UID):$(GID) ./
+	$(DOCKER_COMPOSE) stop
 
 clean:
-	rm -rf $(PWD)/build
+	$(DOCKER_COMPOSE) rm --stop --force
+
